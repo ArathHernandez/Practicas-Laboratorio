@@ -1,30 +1,24 @@
 LIBRARY IEEE;
 USE IEEE.STD_LOGIC_1164.ALL;
 
-ENTITY P7194 IS
-PORT(V : IN STD_LOGIC_VECTOR(3 downto 0);
-     CLK, CLR, S0, S1, SR, SL : IN STD_LOGIC;
-     Q: OUT STD_LOGIC_VECTOR(3 downto 0));
-END P7194;
+ENTITY EJ2 is
+PORT(UD, CLK, CEP, CET, PE: IN std_logic;
+     D: in std_logic_vector(7 downto 0);
+     Q: out std_logic_vector(7 downto 0);
+     TC: out std_logic);
+END EJ2;
 
-ARCHITECTURE BEHAVIORAL OF P7194 IS
-SIGNAL G,QA: STD_LOGIC_VECTOR(3 downto 0);
+ARCHITECTURE BEHAVIORAL of EJ2 is
+COMPONENT P74F169
+PORT (UD, CLK1, CEP, CET, PE : in std_logic;
+      D : in std_logic_vector( 3 downto 0);
+      Q : out std_logic_vector (3 downto 0);
+      TC: out std_logic);
+END COMPONENT;
+SIGNAL FRA: std_logic := '1';
+SIGNAL NRA: std_logic := '0';
 BEGIN
-G <= QA;
-PROCESS(CLK,CLR)
-BEGIN
-IF (CLR = '0') THEN
-QA <= "0000";
-ELSIF (rising_edge(CLK)) THEN
-IF (S0 = '1' and S1 = '1') THEN
-QA <= V;
-ELSIF (S0 = '0' and S1 = '1') THEN
-QA <= SR & G(3 downto 1);
-ELSIF (S0 = '1' and S1 = '0') THEN QA <= G(2 downto 0) & SL;
-ELSIF (S0 = '0' and S1 = '0') THEN
-QA <= QA;
-END IF;
-END IF;
-Q <= QA;
-END PROCESS;
+NRA <= not FRA;
+C1: P74F169 PORT MAP(UD, CLK, '0', '0', PE, D(3 downto 0), Q(3 downto 0),FRA);
+C2: P74F169 PORT MAP(UD, NRA, '0', '0', PE, D(7 downto 4), Q(7 downto 4),TC);
 END BEHAVIORAL;
