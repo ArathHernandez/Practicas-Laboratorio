@@ -12,10 +12,9 @@ entity comb is
    );
    port(
       -- global and control ports
-      clk_i             : in  std_logic; -- 100 MHz system clock
-      rst_i             : in  std_logic; -- active high system reset
-      en_i              : in  std_logic; -- sampling frequency-synchronous 
-                                         -- impulse
+      clk_i             : in  std_logic;
+      rst_i             : in  std_logic;
+      en_i              : in  std_logic; 
       -- input/output data
       data_i            : in  std_logic_vector(15 downto 0);
       data_o            : out std_logic_vector(15 downto 0)
@@ -24,10 +23,6 @@ end comb;
 
 architecture Behavioral of comb is
 
-------------------------------------------------------------------------
--- Component Declarations
-------------------------------------------------------------------------
--- Multiplier core
 component mul
    port (
       a : in  std_logic_vector(16 downto 0);
@@ -35,40 +30,21 @@ component mul
       p : out std_logic_vector(31 downto 0));
 end component;
 
-------------------------------------------------------------------------
--- Constant Definitions
-------------------------------------------------------------------------
--- Gain = 10^(-3*tau/T60)
 constant GAIN           : real := 
    real(10**real(((-3.0)*LOOP_TIME_MS)/REVERB_TIME_MS));
--- Delay = tau*Fs
 constant DELAY          : integer := 
    integer(real(SAMPLING_FREQ_KHZ*LOOP_TIME_MS));
--- multiplier gain value
 constant MUL_VAL        : std_logic_vector(14 downto 0) := 
    conv_std_logic_vector(integer(real(GAIN*(2**15.0))), 15);
--- data bus width
 constant DATA_WIDTH     : integer := 16;
 
-------------------------------------------------------------------------
--- Type Declarations
-------------------------------------------------------------------------
 type x16 is array (0 to (DELAY-1)) of std_logic_vector(DATA_WIDTH downto 0);
 
-------------------------------------------------------------------------
--- Signal Declarations
-------------------------------------------------------------------------
--- data after the adder
 signal data_add         : std_logic_vector(DATA_WIDTH downto 0);
--- temporary delayed data
 signal tmp              : x16 := (others => (others => '0'));
--- delayed data
 signal delayed_data     : std_logic_vector(DATA_WIDTH downto 0);
 signal multiplied_data  : std_logic_vector(31 downto 0);
 
-------------------------------------------------------------------------
--- Module Implementation
-------------------------------------------------------------------------
 begin
    
    data_add <= multiplied_data(31 downto (DATA_WIDTH-1)) + 
